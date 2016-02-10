@@ -26,15 +26,19 @@
 @property (nonatomic, unsafe_unretained) IBOutlet BackgroundView *backgroundView;
 @property (nonatomic, unsafe_unretained) IBOutlet NSSearchField *searchField;
 @property (nonatomic, unsafe_unretained) IBOutlet NSTextField *textField;
+@property (strong) IBOutlet NSSegmentedControl *searchTypeSegmentedControl;
 
 @property (nonatomic) BOOL hasActivePanel;
 @property (nonatomic, unsafe_unretained, readonly) id<PanelControllerDelegate> delegate;
 @property (nonatomic, retain) NSData* responseData;
+@property (nonatomic, retain) NSString* searchType;
+@property (nonatomic, retain) NSString* lastSearchedURI;
 
 - (id)initWithDelegate:(id<PanelControllerDelegate>)delegate;
 
 - (void)openPanel;
 - (void)closePanel;
 - (IBAction)performSearch:(NSButton *)sender;
+- (IBAction)changeSearchType:(NSSegmentedControl *)sender;
 
 @end

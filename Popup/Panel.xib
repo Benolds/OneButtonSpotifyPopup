@@ -9,6 +9,7 @@
             <connections>
                 <outlet property="backgroundView" destination="6" id="20"/>
                 <outlet property="searchField" destination="18" id="21"/>
+                <outlet property="searchTypeSegmentedControl" destination="L1x-6J-Bty" id="zVk-b1-lBF"/>
                 <outlet property="textField" destination="34" id="37"/>
                 <outlet property="window" destination="5" id="7"/>
             </connections>
@@ -19,14 +20,14 @@
             <windowStyleMask key="styleMask" utility="YES" nonactivatingPanel="YES"/>
             <windowCollectionBehavior key="collectionBehavior" moveToActiveSpace="YES" ignoresCycle="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="162" y="101" width="280" height="180"/>
+            <rect key="contentRect" x="162" y="101" width="280" height="220"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
             <view key="contentView" id="6" customClass="BackgroundView">
-                <rect key="frame" x="0.0" y="0.0" width="280" height="180"/>
+                <rect key="frame" x="0.0" y="0.0" width="280" height="220"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <searchField wantsLayer="YES" focusRingType="none" verticalHuggingPriority="750" id="18">
-                        <rect key="frame" x="20" y="138" width="240" height="22"/>
+                        <rect key="frame" x="20" y="178" width="240" height="22"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                         <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" focusRingType="none" alignment="left" placeholderString="" usesSingleLineMode="YES" bezelStyle="round" id="19">
                             <font key="font" metaFont="smallSystem"/>
@@ -38,7 +39,7 @@
                         </connections>
                     </searchField>
                     <textField verticalHuggingPriority="750" id="34">
-                        <rect key="frame" x="17" y="94" width="246" height="36"/>
+                        <rect key="frame" x="17" y="103" width="246" height="67"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <textFieldCell key="cell" sendsActionOnEndEditing="YES" alignment="center" id="35">
                             <font key="font" metaFont="smallSystem"/>
@@ -47,7 +48,7 @@
                         </textFieldCell>
                     </textField>
                     <button verticalHuggingPriority="750" id="2NR-vu-4Zt">
-                        <rect key="frame" x="60" y="58" width="83" height="32"/>
+                        <rect key="frame" x="14" y="40" width="252" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Search" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="uRc-RK-kMs">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -58,7 +59,7 @@
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" id="VfZ-Ky-jVK">
-                        <rect key="frame" x="148" y="58" width="72" height="32"/>
+                        <rect key="frame" x="197" y="13" width="70" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Copy" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="gaX-oE-XjU">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -69,7 +70,7 @@
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" id="Hzp-BD-Fqi">
-                        <rect key="frame" x="60" y="30" width="66" height="32"/>
+                        <rect key="frame" x="14" y="13" width="113" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Play" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="uN1-W8-uX1">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -80,7 +81,7 @@
                         </connections>
                     </button>
                     <button verticalHuggingPriority="750" id="QgU-YB-aIa">
-                        <rect key="frame" x="143" y="30" width="77" height="32"/>
+                        <rect key="frame" x="127" y="13" width="70" height="32"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <buttonCell key="cell" type="push" title="Pause" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="yjZ-lM-TgO">
                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -90,11 +91,27 @@
                             <action selector="pauseButtonPressed:" target="-2" id="aSv-uK-l6n"/>
                         </connections>
                     </button>
+                    <segmentedControl verticalHuggingPriority="750" id="L1x-6J-Bty">
+                        <rect key="frame" x="18" y="72" width="244" height="24"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <segmentedCell key="cell" borderStyle="border" alignment="left" style="rounded" trackingMode="selectOne" id="1so-Uc-q5c">
+                            <font key="font" metaFont="system"/>
+                            <segments>
+                                <segment label="Track" width="79"/>
+                                <segment label="Album" width="79" tag="1"/>
+                                <segment label="Artist" width="78" selected="YES"/>
+                            </segments>
+                        </segmentedCell>
+                        <connections>
+                            <action selector="changeSearchType:" target="-2" id="aMH-LT-hiu"/>
+                        </connections>
+                    </segmentedControl>
                 </subviews>
             </view>
             <connections>
                 <outlet property="delegate" destination="-2" id="8"/>
             </connections>
+            <point key="canvasLocation" x="467" y="191"/>
         </window>
         <button verticalHuggingPriority="750" id="N0b-Y9-1wE">
             <rect key="frame" x="0.0" y="0.0" width="82" height="32"/>

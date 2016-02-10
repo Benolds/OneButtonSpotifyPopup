@@ -9,9 +9,16 @@
 
 #define SEARCH_INSET 17
 
-#define POPUP_HEIGHT 160
+#define POPUP_HEIGHT 220
 #define PANEL_WIDTH 280
 #define MENU_ANIMATION_DURATION .1
+
+#define SEARCH_TYPE_TRACK           @"track"
+#define SEARCH_TYPE_ALBUM           @"album"
+#define SEARCH_TYPE_ARTIST          @"artist"
+#define SEARCH_TYPE_TRACKS_PLURAL   @"tracks"
+#define SEARCH_TYPE_ALBUMS_PLURAL   @"albums"
+#define SEARCH_TYPE_ARTISTS_PLURAL  @"artists"
 
 #pragma mark -
 
@@ -21,6 +28,9 @@
 @synthesize delegate = _delegate;
 @synthesize searchField = _searchField;
 @synthesize textField = _textField;
+@synthesize responseData = _responseData;
+@synthesize searchType = _searchType;
+@synthesize lastSearchedURI = _lastSearchedURI;
 
 #pragma mark -
 
@@ -51,6 +61,11 @@
     [panel setLevel:NSPopUpMenuWindowLevel];
     [panel setOpaque:NO];
     [panel setBackgroundColor:[NSColor clearColor]];
+    
+    self.lastSearchedURI = @"spotify:track:6nek1Nin9q48AVZcWs9e9D"; // temp default value to avoid crashing
+    
+    self.searchType = [self.searchTypeSegmentedControl labelForSegment:self.searchTypeSegmentedControl.selectedSegment];
+    NSLog(@"%@", self.searchType);
     
     // Follow search string
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(runSearch) name:NSControlTextDidChangeNotification object:self.searchField];
@@ -165,21 +180,58 @@
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     NSString *unencodedSearchString = [self.searchField stringValue];
     NSString *encodedSearchString = [self urlEncode:unencodedSearchString];
-    NSString *spotifyGetURL = [NSString stringWithFormat:@"https://api.spotify.com/v1/search?q=%@&type=artist", encodedSearchString];
+    NSString *spotifyGetURL = [NSString stringWithFormat:@"https://api.spotify.com/v1/search?q=%@&type=%@", encodedSearchString, [self getSearchType]];
+//    NSString *spotifyGetURL = [NSString stringWithFormat:@"https://api.spotify.com/v1/search?q=%@&type=artist", encodedSearchString];
+
+    NSLog(@"spotify url: %@", spotifyGetURL);
     [manager GET:spotifyGetURL parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
 //        NSLog(@"JSON: %@", responseObject);
-        NSDictionary *artists = [responseObject objectForKey:@"artists"];
-//        NSLog(@"%@", artists);
-//        [[[[responseObject objectForKey:@"artists"] objectForKey:@"items"] objectAtIndex:0] objectForKey:@"uri"];
-        NSArray *items = [artists objectForKey:@"items"];
+        NSDictionary *itemInfomation = [responseObject objectForKey:[self getSearchTypePlural]];
+        NSArray *items = [itemInfomation objectForKey:@"items"];
         NSDictionary *firstItem = [items objectAtIndex:0];
+        NSLog(@"firstItem\n\n%@", firstItem);
         NSString *URI = [firstItem objectForKey:@"uri"];
-        [self.textField setStringValue:URI];
+        self.lastSearchedURI = URI;
+        
+        NSString *infoString = [NSString stringWithFormat:@"Found %@: %@", [self getSearchType], [firstItem objectForKey:@"name"]];
+        if ([self.searchType isEqualToString:@"Track"]) {
+            NSString *album = [[firstItem objectForKey:@"album"] objectForKey:@"name"];
+            NSString *artist = [[[firstItem objectForKey:@"artists"] objectAtIndex:0] objectForKey:@"name"];
+            infoString = [infoString stringByAppendingString:[NSString stringWithFormat:@"\nAlbum: %@\nArtist: %@", album, artist]];
+        }
+        [self.textField setStringValue:infoString];
         
     } failure:^(NSURLSessionTask *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
     
+}
+
+- (IBAction)changeSearchType:(NSSegmentedControl *)sender {
+    self.searchType = [self.searchTypeSegmentedControl labelForSegment:self.searchTypeSegmentedControl.selectedSegment];
+    NSLog(@"%@", self.searchType);
+}
+
+- (NSString *)getSearchType
+{
+    if ([self.searchType isEqualToString:@"Track"]) {
+        return SEARCH_TYPE_TRACK;
+    } else if ([self.searchType isEqualToString:@"Album"]) {
+        return SEARCH_TYPE_ALBUM;
+    } else {
+        return SEARCH_TYPE_ARTIST;
+    }
+}
+
+- (NSString *)getSearchTypePlural
+{
+    if ([self.searchType isEqualToString:@"Track"]) {
+        return SEARCH_TYPE_TRACKS_PLURAL;
+    } else if ([self.searchType isEqualToString:@"Album"]) {
+        return SEARCH_TYPE_ALBUMS_PLURAL;
+    } else {
+        return SEARCH_TYPE_ARTISTS_PLURAL;
+    }
 }
 
 - (NSString *)urlEncode:(NSString *)string {
@@ -209,11 +261,11 @@
 
 - (IBAction)copyToPasteBoard:(NSButton *)sender {
 
-    if (self.textField.stringValue.length > 0) {
-        NSString *terminalCommand = [NSString stringWithFormat:@"spotify play %@", self.textField.stringValue];
+    if (self.lastSearchedURI.length > 0) {
+        NSString *terminalCommand = [NSString stringWithFormat:@"spotify play %@", self.lastSearchedURI];
         BOOL success = [self writeToPasteBoard:terminalCommand];
         NSLog(@"Successful copy? %i", success);
-        [self.textField setStringValue:@""];
+        [self.textField setStringValue:@"Copied command to clipboard!"];
     }
 }
 
@@ -227,7 +279,7 @@
     
     NSTask *task = [[NSTask alloc] init];
     task.launchPath = [self getSpotifyScriptPath];
-    task.arguments = @[@"play", self.textField.stringValue];
+    task.arguments = @[@"play", self.lastSearchedURI];
     [task launch];
     //        [task waitUntilExit];
     
