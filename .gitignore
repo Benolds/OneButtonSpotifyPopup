@@ -24,3 +24,6 @@ bin
 
 # default project workspace
 project.xcworkspace
+
+# pods
+Pods/

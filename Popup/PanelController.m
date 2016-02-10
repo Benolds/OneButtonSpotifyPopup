@@ -2,13 +2,14 @@
 #import "BackgroundView.h"
 #import "StatusItemView.h"
 #import "MenubarController.h"
+#import <AFNetworking/AFNetworking.h>
 
 #define OPEN_DURATION .15
 #define CLOSE_DURATION .1
 
 #define SEARCH_INSET 17
 
-#define POPUP_HEIGHT 122
+#define POPUP_HEIGHT 160
 #define PANEL_WIDTH 280
 #define MENU_ANIMATION_DURATION .1
 
@@ -154,6 +155,91 @@
     }
     NSString *searchRequest = [NSString stringWithFormat:searchFormat, searchString];
     [self.textField setStringValue:searchRequest];
+}
+
+#pragma mark - UI Interaction
+
+- (IBAction)performSearch:(NSButton *)sender {
+
+    // 1    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    NSString *unencodedSearchString = [self.searchField stringValue];
+    NSString *encodedSearchString = [self urlEncode:unencodedSearchString];
+    NSString *spotifyGetURL = [NSString stringWithFormat:@"https://api.spotify.com/v1/search?q=%@&type=artist", encodedSearchString];
+    [manager GET:spotifyGetURL parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
+//        NSLog(@"JSON: %@", responseObject);
+        NSDictionary *artists = [responseObject objectForKey:@"artists"];
+//        NSLog(@"%@", artists);
+//        [[[[responseObject objectForKey:@"artists"] objectForKey:@"items"] objectAtIndex:0] objectForKey:@"uri"];
+        NSArray *items = [artists objectForKey:@"items"];
+        NSDictionary *firstItem = [items objectAtIndex:0];
+        NSString *URI = [firstItem objectForKey:@"uri"];
+        [self.textField setStringValue:URI];
+        
+    } failure:^(NSURLSessionTask *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
+    
+}
+
+- (NSString *)urlEncode:(NSString *)string {
+    NSMutableString *output = [NSMutableString string];
+    const unsigned char *source = (const unsigned char *)[string UTF8String];
+    int sourceLen = (int)strlen((const char *)source);
+    for (int i = 0; i < sourceLen; ++i) {
+        const unsigned char thisChar = source[i];
+        if (thisChar == ' '){
+            [output appendString:@"+"];
+        } else if (thisChar == '.' || thisChar == '-' || thisChar == '_' || thisChar == '~' ||
+                   (thisChar >= 'a' && thisChar <= 'z') ||
+                   (thisChar >= 'A' && thisChar <= 'Z') ||
+                   (thisChar >= '0' && thisChar <= '9')) {
+            [output appendFormat:@"%c", thisChar];
+        } else {
+            [output appendFormat:@"%%%02X", thisChar];
+        }
+    }
+    return output;
+}
+
+- (NSString *)getSpotifyScriptPath
+{
+    return [[NSBundle mainBundle] pathForResource:@"SpotifyControl" ofType:@""];
+}
+
+- (IBAction)copyToPasteBoard:(NSButton *)sender {
+
+    if (self.textField.stringValue.length > 0) {
+        NSString *terminalCommand = [NSString stringWithFormat:@"spotify play %@", self.textField.stringValue];
+        BOOL success = [self writeToPasteBoard:terminalCommand];
+        NSLog(@"Successful copy? %i", success);
+        [self.textField setStringValue:@""];
+    }
+}
+
+- (BOOL) writeToPasteBoard:(NSString *)stringToWrite
+{
+    [[NSPasteboard generalPasteboard] declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
+    return [[NSPasteboard generalPasteboard] setString:stringToWrite forType:NSStringPboardType];
+}
+
+- (IBAction)playButtonPressed:(NSButton *)sender {
+    
+    NSTask *task = [[NSTask alloc] init];
+    task.launchPath = [self getSpotifyScriptPath];
+    task.arguments = @[@"play", self.textField.stringValue];
+    [task launch];
+    //        [task waitUntilExit];
+    
+}
+
+- (IBAction)pauseButtonPressed:(NSButton *)sender {
+    
+    NSTask *task = [[NSTask alloc] init];
+    task.launchPath = [self getSpotifyScriptPath];
+    task.arguments = @[@"pause"];
+    [task launch];
+    [task waitUntilExit];
 }
 
 #pragma mark - Public methods
