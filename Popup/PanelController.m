@@ -175,7 +175,12 @@
 #pragma mark - UI Interaction
 
 - (IBAction)performSearch:(NSButton *)sender {
-
+    
+    if ([self.searchField stringValue].length == 0) {
+        [self.textField setStringValue:@"Search field is empty"];
+        return;
+    }
+    
     // 1    
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     NSString *unencodedSearchString = [self.searchField stringValue];
@@ -188,21 +193,29 @@
 //        NSLog(@"JSON: %@", responseObject);
         NSDictionary *itemInfomation = [responseObject objectForKey:[self getSearchTypePlural]];
         NSArray *items = [itemInfomation objectForKey:@"items"];
-        NSDictionary *firstItem = [items objectAtIndex:0];
-        NSLog(@"firstItem\n\n%@", firstItem);
-        NSString *URI = [firstItem objectForKey:@"uri"];
-        self.lastSearchedURI = URI;
-        
-        NSString *infoString = [NSString stringWithFormat:@"Found %@: %@", [self getSearchType], [firstItem objectForKey:@"name"]];
-        if ([self.searchType isEqualToString:@"Track"]) {
-            NSString *album = [[firstItem objectForKey:@"album"] objectForKey:@"name"];
-            NSString *artist = [[[firstItem objectForKey:@"artists"] objectAtIndex:0] objectForKey:@"name"];
-            infoString = [infoString stringByAppendingString:[NSString stringWithFormat:@"\nAlbum: %@\nArtist: %@", album, artist]];
+        if (items.count > 0) {
+            NSDictionary *firstItem = [items objectAtIndex:0];
+            NSLog(@"firstItem\n\n%@", firstItem);
+            NSString *URI = [firstItem objectForKey:@"uri"];
+            self.lastSearchedURI = URI;
+            
+            NSString *infoString = [NSString stringWithFormat:@"Found %@: %@", [self getSearchType], [firstItem objectForKey:@"name"]];
+            if ([self.searchType isEqualToString:@"Track"]) {
+                NSString *album = [[firstItem objectForKey:@"album"] objectForKey:@"name"];
+                NSArray *artists = [firstItem objectForKey:@"artists"];
+                if (artists.count > 0) {
+                    NSString *artist = [[artists objectAtIndex:0] objectForKey:@"name"];
+                    infoString = [infoString stringByAppendingString:[NSString stringWithFormat:@"\nAlbum: %@\nArtist: %@", album, artist]];
+                }
+            }
+            [self.textField setStringValue:infoString];
+        } else {
+            [self.textField setStringValue:@"Couldn't find a match"];
         }
-        [self.textField setStringValue:infoString];
         
     } failure:^(NSURLSessionTask *operation, NSError *error) {
         NSLog(@"Error: %@", error);
+        [self.textField setStringValue:@"Error searching Spotify API"];
     }];
     
 }
